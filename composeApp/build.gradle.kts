@@ -1,3 +1,4 @@
+import io.grpc.internal.SharedResourceHolder.release
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -18,7 +19,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -29,9 +30,9 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     jvm("desktop")
-    
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "composeApp"
@@ -51,10 +52,10 @@ kotlin {
         }
         binaries.executable()
     }
-    
+
     sourceSets {
         val desktopMain by getting
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -86,6 +87,10 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
+        ndk {
+            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+        }
     }
     packaging {
         resources {
@@ -97,6 +102,13 @@ android {
             isMinifyEnabled = false
         }
     }
+    externalNativeBuild {
+        cmake {
+            path = file("native/CMakeLists.txt")
+        }
+    }
+    ndkVersion = "28.0.12916984 rc3"
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -105,6 +117,11 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+}
+
+tasks.withType<JavaExec> {
+    val libPath = projectDir.absolutePath + "/native"
+    systemProperty("java.library.path", libPath)
 }
 
 compose.desktop {
