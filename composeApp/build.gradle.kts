@@ -27,7 +27,18 @@ kotlin {
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
-            isStatic = true
+            /** Because we are linking our library inside the composeApp, we can not
+             * use a static library. You can avoid this by linking in the def file.
+             **/
+            isStatic = false
+            // For linking our library. You can specify this on def file also
+            linkerOpts("-L${rootDir}/composeApp/native/ios","-ltinyexpr_ios_sim")
+        }
+
+        iosTarget.compilations["main"].cinterops.create("tinyexpr"){
+            definitionFile = file("nativeInterop/cinterop/tinyexpr.def")
+            // Header dir
+            includeDirs("native/include")
         }
     }
 
