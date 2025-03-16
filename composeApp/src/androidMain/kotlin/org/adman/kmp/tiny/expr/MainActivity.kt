@@ -11,6 +11,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val result = TinyExprJNI.eval("3 + 4 * 2")
+            println("Result: $result")
             App()
         }
     }
